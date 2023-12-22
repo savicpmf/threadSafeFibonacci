@@ -1,13 +1,12 @@
 #include <iostream>
 #include <thread>
 #include <mutex>
-#include <atomic>
 #include <vector>
 #include <functional>
 #include <algorithm>
 
 using namespace std;
-
+// ovo je drugi branch koji koristi lockguard umesto atomic rezultat
 
 int fibonaci(int n)
 {
@@ -22,22 +21,24 @@ int fibonaci(int n)
 	}
 }
 
-void posao(int pocetak,int kraj,int radPoNit,atomic<int>& rezultat)
+void posao(int pocetak,int kraj,int radPoNit,int& rezultat, mutex& m)
 {
 	for (int i = pocetak; i < kraj; i++)
 	{
 		//cout << "fibonaci [" << i << "] = " << fibonaci(i) << " ";
+		lock_guard<mutex> lg(m);
 		rezultat += fibonaci(i);
 	}
 }
 
-// ovo je drugi branch
+
 
 
 int main()
 {
-	atomic<int> rezultat;
-	int i, zbir = 0, brojNiti = 8, n = 10, start = 0, end = 0;
+	mutex m;
+	int rezultat=0;
+	int i, zbir = 0, brojNiti = 35, n = 35, start = 0, end = 0;
 	vector<thread>niti(brojNiti);
 
 	int radPoNit = (n+brojNiti-1)/brojNiti;
@@ -47,12 +48,12 @@ int main()
 	for (i = 0; i < brojNiti-1; i++)
 	{
 		end = min(start + radPoNit, n);
-		niti[i] = thread(posao, start, end, radPoNit, ref(rezultat));
+		niti[i] = thread(posao, start, end, radPoNit, ref(rezultat),ref(m));
 		start = end;
 		if (start >= n)
 			break;
 	}
-	posao(start, n+1, radPoNit, rezultat);
+	posao(start, n+1, radPoNit, rezultat,m);
 
 	//for_each(niti.begin(), find_if(niti.begin(), niti.end(), [](const thread& t) { return !t.joinable(); }), mem_fn(&thread::join));
 
