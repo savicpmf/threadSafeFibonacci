@@ -31,6 +31,7 @@ void posao(int pocetak,int kraj,int radPoNit,atomic<int>& rezultat)
 	}
 }
 
+// ovo je drugi branch
 
 
 int main()
